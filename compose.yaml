@@ -1,0 +1,54 @@
+
+# All services to set up
+services:
+  caddy:
+    # Build from a specific image
+    build:
+      context: . # Set build context to project root
+      dockerfile: ./src/caddy/Dockerfile # Where to find the Dockerfile for frontend service    
+    env_file: .env # load env vars from file
+    networks:
+      - int # which services it can talk with over the network
+    volumes: 
+      - ./src/frontend/Caddyfile:/etc/caddy/Caddyfile 
+      - public_html:/var/www/frontend
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    
+    depends_on:
+      - frontend
+
+  frontend:
+    # Build from a specific image
+    build:
+      context: . # Set build context to project root
+      dockerfile: ./src/frontend/Dockerfile # Where to find the Dockerfile for frontend service
+    env_file: .env
+    # which services it can talk with over the network
+    networks:
+      - int 
+      - ext
+    # caddy and frontend service share the same storage
+    volumes:
+      - public_html:/app/frontend
+    
+  backend:
+    # Build from a specific image
+    build:
+      context: . # Set build context to project root
+      dockerfile: ./src/backend/Dockerfile # Where to find the Dockerfile for backend service
+    env_file: .env
+    networks:
+      - int
+      - ext
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+  
+networks:
+  int:
+  ext:
+
+volumes:
+  public_html:
