@@ -1,9 +1,0 @@
-
-:{$FRONTEND_PORT} {
-	vars BACKEND_PORT {$APP_PORT}
-	
-	root /var/www/frontend
-	templates
-	file_server
-}
-

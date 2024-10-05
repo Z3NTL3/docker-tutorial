@@ -4,4 +4,4 @@ RUN xcaddy build \
 
 FROM caddy:2-alpine
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
-EXPOSE ${HTTP_PORT} ${HTTPS_PORT}
+EXPOSE ${HTTP_PORT} ${HTTPS_PORT} ${APP_PORT} ${FRONTEND_PORT}

@@ -1,0 +1,17 @@
+{
+	http_port {$HTTP_PORT}
+	https_port {$HTTPS_PORT}
+}
+
+:{$FRONTEND_PORT} {
+	vars BACKEND_PORT {$APP_PORT}
+	
+	root /var/www/frontend
+	templates
+	file_server
+
+}
+
+:4000 {
+	reverse_proxy http://website:{$APP_PORT}
+}

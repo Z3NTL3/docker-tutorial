@@ -4,51 +4,44 @@ services:
   caddy:
     # Build from a specific image
     build:
-      context: . # Set build context to project root
-      dockerfile: ./src/caddy/Dockerfile # Where to find the Dockerfile for frontend service    
-    env_file: .env # load env vars from file
-    networks:
-      - int # which services it can talk with over the network
-    volumes: 
-      - ./src/frontend/Caddyfile:/etc/caddy/Caddyfile 
-      - public_html:/var/www/frontend
-    ports:
-      - "${HTTP_PORT}:80"
-      - "${HTTPS_PORT}:443"
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
-    
-    depends_on:
-      - frontend
-
-  frontend:
-    # Build from a specific image
-    build:
-      context: . # Set build context to project root
-      dockerfile: ./src/frontend/Dockerfile # Where to find the Dockerfile for frontend service
-    env_file: .env
-    # which services it can talk with over the network
-    networks:
-      - int 
-      - ext
-    # caddy and frontend service share the same storage
-    volumes:
-      - public_html:/app/frontend
-    
-  backend:
-    # Build from a specific image
-    build:
-      context: . # Set build context to project root
-      dockerfile: ./src/backend/Dockerfile # Where to find the Dockerfile for backend service
-    env_file: .env
+      # Set build context to project root
+      context: .
+      # Where to find the Dockerfile for frontend service    
+      dockerfile: ./src/caddy/Dockerfile 
+    # load env vars from file
+    env_file: .env 
+    # which services it can talk to from within the container's network
     networks:
       - int
-      - ext
+    volumes: 
+      - ./src/caddy/Caddyfile:/etc/caddy/Caddyfile # bind mount
+      - public_html:/var/www/frontend # shares frontend assets with website
     ports:
-      - "${APP_PORT}:${APP_PORT}"
-  
+      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "${HTTPS_PORT}:${HTTPS_PORT}"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      - "${APP_PORT}:4000"
+
+    depends_on:
+      - website # ensures website builds the volume and caddy service/container syncs with it
+
+  website:
+    build:
+      # Set build context to project root
+      context: . 
+      # Where to find the Dockerfile for frontend service    
+      dockerfile: ./src/website/Dockerfile 
+    # load env vars from file
+    env_file: .env 
+    volumes:
+      - public_html:/var/www/frontend # shares frontend assets with caddy
+    networks:
+      - int # caddy can communicate especially with backend
+
 networks:
-  int:
-  ext:
+  int: 
+    external: true
+    name: website2-caddy-bridge
 
 volumes:
   public_html:
